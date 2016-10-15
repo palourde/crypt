@@ -84,7 +84,7 @@ func New(c Crypt) Crypter {
 }
 
 // NewFromHash returns a new Crypter using the prefix in the given hashed key.
-func NewFromHash(hashedKey string) Crypter {
+func NewFromHash(hashedKey string) (Crypter, error) {
 	var f func() Crypter
 
 	if strings.HasPrefix(hashedKey, cryptPrefixes[SHA512]) {
@@ -95,14 +95,11 @@ func NewFromHash(hashedKey string) Crypter {
 		f = crypts[MD5]
 	} else if strings.HasPrefix(hashedKey, cryptPrefixes[APR1]) {
 		f = crypts[APR1]
-	} else {
-		toks := strings.SplitN(hashedKey, "$", 3)
-		prefix := "$" + toks[1] + "$"
-		panic("crypt: unknown cryp function from prefix: " + prefix)
 	}
 
 	if f != nil {
-		return f()
+		return f(), nil
 	}
-	panic("crypt: requested cryp function is unavailable")
+
+	return nil, errors.New("Invalid hash")
 }
